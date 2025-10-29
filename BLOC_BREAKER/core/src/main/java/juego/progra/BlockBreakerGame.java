@@ -1,4 +1,4 @@
-package puppy.code;
+package juego.progra;
 
 import java.util.ArrayList;
 
@@ -20,7 +20,7 @@ public class BlockBreakerGame extends ApplicationAdapter {
 	private ShapeRenderer shape;
 	private PingBall ball;
 	private Paddle pad;
-	private ArrayList<Block> blocks = new ArrayList<>();
+	private ArrayList<Destructible> blocks = new ArrayList<>();
 	private int vidas;
 	private int puntaje;
 	private int nivel;
@@ -49,7 +49,15 @@ public class BlockBreakerGame extends ApplicationAdapter {
 		    for (int cont = 0; cont<filas; cont++ ) {
 		    	y -= blockHeight+10;
 		    	for (int x = 5; x < Gdx.graphics.getWidth(); x += blockWidth + 10) {
-		            blocks.add(new Block(x, y, blockWidth, blockHeight));
+		    		// Crear una mezcla de bloques: 60% simples, 30% resistentes, 10% regenerativos
+		    		double random = Math.random();
+		    		if (random < 0.1) {
+		    			blocks.add(new RegenerativeBlock(x, y, blockWidth, blockHeight));
+		    		} else if (random < 0.4) {
+		    			blocks.add(new StrongBlock(x, y, blockWidth, blockHeight));
+		    		} else {
+		    			blocks.add(new SimpleBlock(x, y, blockWidth, blockHeight));
+		    		}
 		        }
 		    }
 		}
@@ -95,15 +103,15 @@ public class BlockBreakerGame extends ApplicationAdapter {
 	        	ball = new PingBall(pad.getX()+pad.getWidth()/2-5, pad.getY()+pad.getHeight()+11, 10, 5, 7, true);
 	        }    	
 	        //dibujar bloques
-	        for (Block b : blocks) {        	
+	        for (Destructible b : blocks) {        	
 	            b.draw(shape);
 	            ball.checkCollision(b);
 	        }
 	        // actualizar estado de los bloques 
 	        for (int i = 0; i < blocks.size(); i++) {
-	            Block b = blocks.get(i);
-	            if (b.destroyed) {
-	            	puntaje++;
+	            Destructible b = blocks.get(i);
+	            if (b.isDestroyed()) {
+	            	puntaje += b.getPointValue();
 	                blocks.remove(b);
 	                i--; //para no saltarse 1 tras eliminar del arraylist
 	            }
