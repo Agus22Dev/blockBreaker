@@ -1,4 +1,4 @@
-package puppy.code;
+package juego.progra;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
