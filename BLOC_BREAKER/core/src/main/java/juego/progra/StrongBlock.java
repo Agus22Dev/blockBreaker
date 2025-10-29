@@ -5,111 +5,70 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import java.util.Random;
 
 /**
- * Implementación de un bloque resistente que requiere múltiples golpes para ser destruido.
+ * Bloque fuerte que requiere varios golpes para destruirse.
  * Cambia de color gradualmente según el daño recibido.
  */
-public class StrongBlock implements Destructible {
-    protected int x, y, width, height;
-    protected Color[] colorStages;
-    protected boolean destroyed;
-    protected int maxHits;
-    protected int currentHits;
-    protected int pointValue;
-    
+public class StrongBlock extends AbstractBlock {
+
+    private int maxHits;
+    private int currentHits;
+    private Color[] colorStages;
+
     public StrongBlock(int x, int y, int width, int height) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.destroyed = false;
-        this.maxHits = 3; // Requiere 3 golpes para destruirse
+        // Llamada al constructor del padre: AbstractBlock
+        super(x, y, width, height, 30); // vale más puntos
+        this.maxHits = 3;
         this.currentHits = 0;
-        this.pointValue = 30; // Más puntos por ser más difícil
-        
-        // Crear diferentes colores para cada estado de daño
+
+        // Colores según el daño recibido
         Random r = new Random(x + y);
         this.colorStages = new Color[maxHits];
-        
-        // Color inicial (más brillante)
         colorStages[0] = new Color(0.8f, 0.2f + r.nextFloat(0.5f), 0.2f + r.nextFloat(0.5f), 1.0f);
-        // Color intermedio
         colorStages[1] = new Color(0.6f, 0.4f + r.nextFloat(0.3f), 0.4f + r.nextFloat(0.3f), 1.0f);
-        // Color antes de destruirse (más oscuro)
         colorStages[2] = new Color(0.4f, 0.6f + r.nextFloat(0.2f), 0.6f + r.nextFloat(0.2f), 1.0f);
     }
-    
-    @Override
-    public void draw(ShapeRenderer shape) {
-        if (!destroyed) {
-            shape.setColor(getCurrentColor());
-            shape.rect(x, y, width, height);
-            
-            // Dibujar borde para indicar que es un bloque especial
-            shape.setColor(Color.WHITE);
-            // Borde superior
-            shape.rect(x, y + height - 2, width, 2);
-            // Borde inferior
-            shape.rect(x, y, width, 2);
-            // Borde izquierdo
-            shape.rect(x, y, 2, height);
-            // Borde derecho
-            shape.rect(x + width - 2, y, 2, height);
-        }
-    }
-    
-    private Color getCurrentColor() {
-        if (currentHits >= maxHits) {
-            return Color.GRAY; // No debería llegar aquí si está destruido
-        }
-        return colorStages[currentHits];
-    }
-    
+
     @Override
     public boolean takeDamage() {
         if (!destroyed) {
             currentHits++;
             if (currentHits >= maxHits) {
                 destroyed = true;
-                return true; // Finalmente destruido
+                System.out.println("💥 StrongBlock destruido (+30 puntos)");
+                return true;
+            } else {
+                System.out.println("StrongBlock golpeado! HP restantes: " + getRemainingHits());
             }
         }
-        return false; // Aún no destruido
+        return false;
     }
-    
-    @Override
-    public boolean isDestroyed() {
-        return destroyed;
-    }
-    
-    @Override
-    public int getX() {
-        return x;
-    }
-    
-    @Override
-    public int getY() {
-        return y;
-    }
-    
-    @Override
-    public int getWidth() {
-        return width;
-    }
-    
-    @Override
-    public int getHeight() {
-        return height;
-    }
-    
-    @Override
-    public int getPointValue() {
-        return pointValue;
-    }
-    
+
     /**
-     * Obtiene el número de golpes restantes para destruir el bloque
-     * @return golpes restantes
+     * Dibuja el bloque con color según su nivel de daño.
+     * Sobrescribe draw() del padre para personalizar su apariencia.
      */
+    @Override
+    public void draw(ShapeRenderer shape) {
+        if (!destroyed) {
+            shape.setColor(getCurrentColor());
+            shape.rect(x, y, width, height);
+
+            // Borde blanco decorativo
+            shape.setColor(Color.WHITE);
+            shape.rect(x, y + height - 2, width, 2);  // superior
+            shape.rect(x, y, width, 2);               // inferior
+            shape.rect(x, y, 2, height);              // izquierda
+            shape.rect(x + width - 2, y, 2, height);  // derecha
+        }
+    }
+
+    private Color getCurrentColor() {
+        if (currentHits >= maxHits) {
+            return Color.GRAY;
+        }
+        return colorStages[currentHits];
+    }
+
     public int getRemainingHits() {
         return Math.max(0, maxHits - currentHits);
     }
