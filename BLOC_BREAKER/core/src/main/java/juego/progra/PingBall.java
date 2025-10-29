@@ -1,4 +1,4 @@
-package puppy.code;
+package juego.progra;
 
 
 
@@ -69,17 +69,14 @@ public class PingBall {
 	    	return intersectaX && intersectaY;
 	    }
 	    
-	    public void checkCollision(Block block) {
-	        if(collidesWith(block)){
-	            ySpeed = - ySpeed;
-	            block.destroyed = true;
-	        }
-	    }
-	    private boolean collidesWith(Block bb) {
-
-	    	boolean intersectaX = (bb.x + bb.width >= x-size) && (bb.x <= x+size);
-	        boolean intersectaY = (bb.y + bb.height >= y-size) && (bb.y <= y+size);		
-	    	return intersectaX && intersectaY;
-	    }
-	    
-	}
+    public void checkCollision(Destructible destructible) {
+        if(collidesWith(destructible)){
+            ySpeed = - ySpeed;
+            destructible.takeDamage();
+        }
+    }
+    private boolean collidesWith(Destructible dd) {
+    	boolean intersectaX = (dd.getX() + dd.getWidth() >= x-size) && (dd.getX() <= x+size);
+        boolean intersectaY = (dd.getY() + dd.getHeight() >= y-size) && (dd.getY() <= y+size);		
+    	return intersectaX && intersectaY;
+    }	}

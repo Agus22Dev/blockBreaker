@@ -1,4 +1,4 @@
-package puppy.code;
+package juego.progra;
 
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
