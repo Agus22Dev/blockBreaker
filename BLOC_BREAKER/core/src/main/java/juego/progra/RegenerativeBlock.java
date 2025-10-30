@@ -2,6 +2,7 @@ package juego.progra;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import java.util.logging.Logger;
 
 /**
  * Implementación de un bloque especial que se regenera después de un tiempo.
@@ -14,10 +15,12 @@ public class RegenerativeBlock extends AbstractBlock {
     protected long regenerationDelay; // tiempo en ms para regenerarse
     protected boolean wasHit;
     
+    private static final Logger LOGGER = Logger.getLogger(RegenerativeBlock.class.getName());
+
     public RegenerativeBlock(int x, int y, int width, int height) {
         // Puntuación alta por ser un bloque difícil
-        super(x, y, width, height, 50);
-        this.regenerationDelay = 3000; // 3 segundos para regenerarse
+        super(x, y, width, height, GameConfig.REGENERATIVE_BLOCK_POINTS);
+        this.regenerationDelay = GameConfig.REGENERATIVE_DELAY_MS; // ms para regenerarse
         this.wasHit = false;
         this.lastHitTime = 0;
 
@@ -96,9 +99,9 @@ public class RegenerativeBlock extends AbstractBlock {
         if (wasHit) {
             // Si ya fue golpeado y recibe otro golpe rápido, se destruye
             if (currentTime - lastHitTime < regenerationDelay) {
-                this.destroyed = true;
-                System.out.println("💥 RegenerativeBlock destruido (+" + getPointValue() + " puntos)");
-                return true;
+                    this.destroyed = true;
+                    LOGGER.info("💥 RegenerativeBlock destruido (+" + getPointValue() + " puntos)");
+                    return true;
             } else {
                 // Ha pasado mucho tiempo, se considera el primer golpe again
                 wasHit = true;

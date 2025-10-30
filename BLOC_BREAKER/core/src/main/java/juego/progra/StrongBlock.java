@@ -3,6 +3,7 @@ package juego.progra;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import java.util.Random;
+import java.util.logging.Logger;
 
 /**
  * Bloque fuerte que requiere varios golpes para destruirse.
@@ -10,23 +11,24 @@ import java.util.Random;
  */
 public class StrongBlock extends AbstractBlock {
 
+    private static final Logger LOGGER = Logger.getLogger(StrongBlock.class.getName());
+
     private int maxHits;
     private int currentHits;
     private Color[] colorStages;
 
     public StrongBlock(int x, int y, int width, int height) {
         // Llamada al constructor del padre: AbstractBlock
-        super(x, y, width, height, 30); // vale más puntos
+        super(x, y, width, height, GameConfig.STRONG_BLOCK_POINTS); // vale más puntos
         this.maxHits = 3;
         this.currentHits = 0;
 
         // Colores según el daño recibido
-    Random r = new Random(x + y);
-    this.colorStages = new Color[maxHits];
-    // Random.nextFloat() no acepta argumentos; multiplicamos por el rango deseado.
-    colorStages[0] = new Color(0.8f, 0.2f + r.nextFloat() * 0.5f, 0.2f + r.nextFloat() * 0.5f, 1.0f);
-    colorStages[1] = new Color(0.6f, 0.4f + r.nextFloat() * 0.3f, 0.4f + r.nextFloat() * 0.3f, 1.0f);
-    colorStages[2] = new Color(0.4f, 0.6f + r.nextFloat() * 0.2f, 0.6f + r.nextFloat() * 0.2f, 1.0f);
+        Random r = new Random(x + y);
+        this.colorStages = new Color[maxHits];
+        colorStages[0] = new Color(0.8f, 0.2f + r.nextFloat() * 0.5f, 0.2f + r.nextFloat() * 0.5f, 1.0f);
+        colorStages[1] = new Color(0.6f, 0.4f + r.nextFloat() * 0.3f, 0.4f + r.nextFloat() * 0.3f, 1.0f);
+        colorStages[2] = new Color(0.4f, 0.6f + r.nextFloat() * 0.2f, 0.6f + r.nextFloat() * 0.2f, 1.0f);
     }
 
     @Override
@@ -35,10 +37,10 @@ public class StrongBlock extends AbstractBlock {
             currentHits++;
             if (currentHits >= maxHits) {
                 destroyed = true;
-                System.out.println("💥 StrongBlock destruido (+30 puntos)");
+                LOGGER.info("💥 StrongBlock destruido (+" + getPointValue() + " puntos)");
                 return true;
             } else {
-                System.out.println("StrongBlock golpeado! HP restantes: " + getRemainingHits());
+                LOGGER.info("StrongBlock golpeado! HP restantes: " + getRemainingHits());
             }
         }
         return false;
@@ -67,10 +69,11 @@ public class StrongBlock extends AbstractBlock {
         if (currentHits >= maxHits) {
             return Color.GRAY;
         }
-        return colorStages[currentHits];
+        return colorStages[Math.min(currentHits, colorStages.length - 1)];
     }
 
     public int getRemainingHits() {
         return Math.max(0, maxHits - currentHits);
     }
 }
+

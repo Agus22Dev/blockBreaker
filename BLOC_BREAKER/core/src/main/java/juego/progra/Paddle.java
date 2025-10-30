@@ -11,6 +11,7 @@ public class Paddle {
     private int width = 100;
     private int height = 10;
     
+    
     public Paddle(int x, int y, int ancho, int alto) {
     	this.x = x;
     	this.y= y;
@@ -25,9 +26,9 @@ public class Paddle {
 
 	public void draw(ShapeRenderer shape){
         shape.setColor(Color.BLUE);
-        int x2 = x; //= Gdx.input.getX();
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) x2 =x-15;
-        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) x2=x+15; 
+    int x2 = x; //= Gdx.input.getX();
+    if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) x2 = x - GameConfig.PADDLE_STEP;
+    if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) x2 = x + GameConfig.PADDLE_STEP;
        // y = Gdx.graphics.getHeight() - Gdx.input.getY(); 
         if (x2 > 0 && x2+width < Gdx.graphics.getWidth()) {
             x = x2;
