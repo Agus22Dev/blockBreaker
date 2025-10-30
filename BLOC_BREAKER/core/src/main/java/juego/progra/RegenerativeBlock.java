@@ -7,28 +7,24 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
  * Implementación de un bloque especial que se regenera después de un tiempo.
  * Requiere múltiples golpes rápidos para ser destruido permanentemente.
  */
-public class RegenerativeBlock implements Destructible {
-    protected int x, y, width, height;
+public class RegenerativeBlock extends AbstractBlock {
+    // Campos específicos del comportamiento regenerativo
     protected Color originalColor;
-    protected boolean destroyed;
-    protected int pointValue;
     protected long lastHitTime;
     protected long regenerationDelay; // tiempo en ms para regenerarse
     protected boolean wasHit;
     
     public RegenerativeBlock(int x, int y, int width, int height) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.destroyed = false;
-        this.pointValue = 50; // Muchos puntos por ser muy difícil
+        // Puntuación alta por ser un bloque difícil
+        super(x, y, width, height, 50);
         this.regenerationDelay = 3000; // 3 segundos para regenerarse
         this.wasHit = false;
         this.lastHitTime = 0;
-        
+
         // Color dorado para indicar que es especial
         this.originalColor = new Color(1.0f, 0.8f, 0.0f, 1.0f); // Dorado
+        // Establecer el color base heredado
+        this.color = this.originalColor;
     }
     
     @Override
@@ -100,7 +96,8 @@ public class RegenerativeBlock implements Destructible {
         if (wasHit) {
             // Si ya fue golpeado y recibe otro golpe rápido, se destruye
             if (currentTime - lastHitTime < regenerationDelay) {
-                destroyed = true;
+                this.destroyed = true;
+                System.out.println("💥 RegenerativeBlock destruido (+" + getPointValue() + " puntos)");
                 return true;
             } else {
                 // Ha pasado mucho tiempo, se considera el primer golpe again

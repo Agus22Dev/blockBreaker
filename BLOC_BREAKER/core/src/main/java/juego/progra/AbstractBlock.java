@@ -24,9 +24,11 @@ public abstract class AbstractBlock implements Destructible {
         this.pointValue = pointValue;
         this.destroyed = false;
 
-        // Color aleatorio (como en tu clase Block original)
-        Random r = new Random(x + y);
-        this.color = new Color(0.1f + r.nextFloat(1), r.nextFloat(1), r.nextFloat(1), 1f);
+    // Color aleatorio (como en tu clase Block original)
+    Random r = new Random(x + y);
+    // nextFloat() no acepta argumentos; para escalar a un rango usamos multiplicación.
+    // Usamos 0.1..1.0 para la componente R y 0..1 para G/B.
+    this.color = new Color(0.1f + r.nextFloat() * 0.9f, r.nextFloat(), r.nextFloat(), 1f);
     }
 
     /**

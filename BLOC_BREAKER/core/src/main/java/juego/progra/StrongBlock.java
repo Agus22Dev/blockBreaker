@@ -21,11 +21,12 @@ public class StrongBlock extends AbstractBlock {
         this.currentHits = 0;
 
         // Colores según el daño recibido
-        Random r = new Random(x + y);
-        this.colorStages = new Color[maxHits];
-        colorStages[0] = new Color(0.8f, 0.2f + r.nextFloat(0.5f), 0.2f + r.nextFloat(0.5f), 1.0f);
-        colorStages[1] = new Color(0.6f, 0.4f + r.nextFloat(0.3f), 0.4f + r.nextFloat(0.3f), 1.0f);
-        colorStages[2] = new Color(0.4f, 0.6f + r.nextFloat(0.2f), 0.6f + r.nextFloat(0.2f), 1.0f);
+    Random r = new Random(x + y);
+    this.colorStages = new Color[maxHits];
+    // Random.nextFloat() no acepta argumentos; multiplicamos por el rango deseado.
+    colorStages[0] = new Color(0.8f, 0.2f + r.nextFloat() * 0.5f, 0.2f + r.nextFloat() * 0.5f, 1.0f);
+    colorStages[1] = new Color(0.6f, 0.4f + r.nextFloat() * 0.3f, 0.4f + r.nextFloat() * 0.3f, 1.0f);
+    colorStages[2] = new Color(0.4f, 0.6f + r.nextFloat() * 0.2f, 0.6f + r.nextFloat() * 0.2f, 1.0f);
     }
 
     @Override
