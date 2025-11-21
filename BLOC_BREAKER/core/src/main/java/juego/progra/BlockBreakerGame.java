@@ -9,6 +9,8 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.files.FileHandle;
 
 /**
  * Contexto principal del juego Block Breaker.
@@ -23,6 +25,8 @@ public class BlockBreakerGame extends ApplicationAdapter {
 	private ShapeRenderer shape;
 	private PingBall ball;
 	private Paddle pad;
+	// Música de fondo (se carga sólo si el archivo existe en assets/music/bg.ogg)
+	private Music bgMusic;
 	private ArrayList<AbstractBlock> blocks = new ArrayList<>();
 	private int vidas;
 	private int puntaje;
@@ -41,6 +45,20 @@ public class BlockBreakerGame extends ApplicationAdapter {
 		shape = new ShapeRenderer();
 		ball = new PingBall(Gdx.graphics.getWidth() / 2 - 10, 41, 10, 5, 7, true);
 		pad = new Paddle(Gdx.graphics.getWidth() / 2 - 50, 40, 100, 10);
+
+		// Intentar cargar música de fondo si el archivo existe en assets/music/bg.ogg
+		try {
+			FileHandle fh = Gdx.files.internal("music/bg.ogg");
+			if (fh.exists()) {
+				bgMusic = Gdx.audio.newMusic(fh);
+				bgMusic.setLooping(true);
+				bgMusic.setVolume(GameConfig.BG_MUSIC_VOLUME);
+				bgMusic.play();
+			}
+		} catch (Throwable t) {
+			// No bloquear si el backend/archivo no está disponible. Dejar sin música.
+			bgMusic = null;
+		}
 		vidas = 3;
 		puntaje = 0;
 	}
@@ -148,5 +166,20 @@ public class BlockBreakerGame extends ApplicationAdapter {
 		batch.dispose();
 		shape.dispose();
 		font.dispose();
+		if (bgMusic != null) {
+			bgMusic.stop();
+			bgMusic.dispose();
+			bgMusic = null;
+		}
+	}
+
+	@Override
+	public void pause() {
+		if (bgMusic != null && bgMusic.isPlaying()) bgMusic.pause();
+	}
+
+	@Override
+	public void resume() {
+		if (bgMusic != null && !bgMusic.isPlaying()) bgMusic.play();
 	}
 }
