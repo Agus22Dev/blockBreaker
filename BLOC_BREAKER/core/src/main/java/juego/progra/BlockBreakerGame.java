@@ -28,6 +28,7 @@ public class BlockBreakerGame extends ApplicationAdapter {
 	// Música de fondo (se carga sólo si el archivo existe en assets/music/bg.ogg)
 	private Music bgMusic;
 	private ArrayList<AbstractBlock> blocks = new ArrayList<>();
+	private ArrayList<PowerUp> powerUps = new ArrayList<>();
 	private int vidas;
 	private int puntaje;
 	private int nivel;
@@ -43,7 +44,7 @@ public class BlockBreakerGame extends ApplicationAdapter {
 		crearBloques(2 + nivel);
 
 		shape = new ShapeRenderer();
-		ball = new PingBall(Gdx.graphics.getWidth() / 2 - 10, 41, 10, 5, 7, true);
+		ball = new PingBall(Gdx.graphics.getWidth() / 2 - 10, 41, 10, GameConfig.BALL_SPEED_X, GameConfig.BALL_SPEED_Y, true);
 		pad = new Paddle(Gdx.graphics.getWidth() / 2 - 50, 40, 100, 10);
 
 		// Intentar cargar música de fondo si el archivo existe en assets/music/bg.ogg
@@ -68,6 +69,7 @@ public class BlockBreakerGame extends ApplicationAdapter {
 	 */
 	public void crearBloques(int filas) {
 		blocks.clear();
+		powerUps.clear(); // Limpiar power-ups al cambiar de nivel
 		int blockWidth = 70;
 		int blockHeight = 26;
 		int y = Gdx.graphics.getHeight();
@@ -86,6 +88,35 @@ public class BlockBreakerGame extends ApplicationAdapter {
 				}
 			}
 		}
+	}
+	
+	/**
+	 * Crea un power-up aleatorio en la posición dada.
+	 */
+	private void createRandomPowerUp(int x, int y) {
+		double random = Math.random();
+		if (random < 0.33) {
+			powerUps.add(new ExtraLifePowerUp(x, y));
+		} else if (random < 0.66) {
+			powerUps.add(new SlowBallPowerUp(x, y));
+		} else {
+			powerUps.add(new WidePaddlePowerUp(x, y));
+		}
+	}
+	
+	/**
+	 * Métodos públicos para aplicar efectos de power-ups.
+	 */
+	public void addLife() {
+		vidas++;
+	}
+	
+	public void slowDownBall() {
+		ball.activateSlow();
+	}
+	
+	public void widenPaddle() {
+		pad.activateWide();
 	}
 
 	/**
@@ -106,6 +137,8 @@ public class BlockBreakerGame extends ApplicationAdapter {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		shape.begin(ShapeRenderer.ShapeType.Filled);
 
+		// Actualizar paddle
+		pad.update();
 		pad.draw(shape);
 
 		// --- Movimiento inicial de la bola ---
@@ -119,7 +152,7 @@ public class BlockBreakerGame extends ApplicationAdapter {
 		// --- Verificar si la bola se va abajo ---
 		if (ball.getY() < 0) {
 			vidas--;
-			ball = new PingBall(pad.getX() + pad.getWidth() / 2 - 5, pad.getY() + pad.getHeight() + 11, 10, 5, 7, true);
+			ball = new PingBall(pad.getX() + pad.getWidth() / 2 - 5, pad.getY() + pad.getHeight() + 11, 10, GameConfig.BALL_SPEED_X, GameConfig.BALL_SPEED_Y, true);
 		}
 
 		// --- Game over ---
@@ -134,7 +167,7 @@ public class BlockBreakerGame extends ApplicationAdapter {
 		if (blocks.isEmpty()) {
 			nivel++;
 			crearBloques(2 + nivel);
-			ball = new PingBall(pad.getX() + pad.getWidth() / 2 - 5, pad.getY() + pad.getHeight() + 11, 10, 5, 7, true);
+			ball = new PingBall(pad.getX() + pad.getWidth() / 2 - 5, pad.getY() + pad.getHeight() + 11, 10, GameConfig.BALL_SPEED_X, GameConfig.BALL_SPEED_Y, true);
 		}
 
 		// --- Dibujar bloques y detectar colisiones ---
@@ -143,12 +176,40 @@ public class BlockBreakerGame extends ApplicationAdapter {
 			ball.checkCollision(b);
 		}
 
-		// --- Actualizar bloques destruidos ---
+		// --- Actualizar bloques destruidos y generar power-ups ---
 		for (int i = 0; i < blocks.size(); i++) {
 			AbstractBlock b = blocks.get(i);
 			if (b.isDestroyed()) {
 				puntaje += b.getPointValue();
+				
+				// Probabilidad de generar power-up
+				if (Math.random() < GameConfig.POWERUP_DROP_CHANCE) {
+					createRandomPowerUp(b.getX() + b.getWidth() / 2 - GameConfig.POWERUP_WIDTH / 2, 
+					                   b.getY());
+				}
+				
 				blocks.remove(i);
+				i--;
+			}
+		}
+		
+		// --- Actualizar y dibujar power-ups ---
+		for (PowerUp p : powerUps) {
+			p.update();
+			p.draw(shape);
+			
+			// Verificar colisión con el paddle
+			if (!p.isDestroyed() && checkCollision(p, pad)) {
+				p.applyEffect(this);
+				puntaje += p.getPointValue();
+				p.takeDamage(); // Destruir el power-up
+			}
+		}
+		
+		// --- Eliminar power-ups destruidos ---
+		for (int i = 0; i < powerUps.size(); i++) {
+			if (powerUps.get(i).isDestroyed()) {
+				powerUps.remove(i);
 				i--;
 			}
 		}
@@ -159,6 +220,17 @@ public class BlockBreakerGame extends ApplicationAdapter {
 
 		shape.end();
 		dibujaTextos();
+	}
+	
+	/**
+	 * Verifica colisión entre un power-up y el paddle.
+	 */
+	private boolean checkCollision(PowerUp powerUp, Paddle paddle) {
+		boolean intersectaX = (paddle.getX() + paddle.getWidth() >= powerUp.getX()) && 
+		                      (paddle.getX() <= powerUp.getX() + powerUp.getWidth());
+		boolean intersectaY = (paddle.getY() + paddle.getHeight() >= powerUp.getY()) && 
+		                      (paddle.getY() <= powerUp.getY() + powerUp.getHeight());
+		return intersectaX && intersectaY;
 	}
 
 	@Override

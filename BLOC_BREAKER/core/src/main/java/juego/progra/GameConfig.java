@@ -16,8 +16,28 @@ public final class GameConfig {
 
     // Movimientos / UI
     // Paso de movimiento del paddle cuando se presionan las teclas izquierda/derecha
-    public static final int PADDLE_STEP = 15;
+    public static final int PADDLE_STEP = 8;
+    
+    // Velocidades de la pelota
+    public static final int BALL_SPEED_X = 4;
+    public static final int BALL_SPEED_Y = 5;
+    
+    // Power-ups
+    public static final int POWERUP_WIDTH = 30;
+    public static final int POWERUP_HEIGHT = 20;
+    public static final int POWERUP_FALL_SPEED = 2;
+    public static final double POWERUP_DROP_CHANCE = 0.15; // 15% de probabilidad
+    
+    // Puntos de power-ups
+    public static final int EXTRA_LIFE_POWERUP_POINTS = 20;
+    public static final int SLOW_BALL_POWERUP_POINTS = 15;
+    public static final int WIDE_PADDLE_POWERUP_POINTS = 15;
+    
+    // Duraciones de efectos (en milisegundos)
+    public static final long SLOW_BALL_DURATION = 5000L; // 5 segundos
+    public static final long WIDE_PADDLE_DURATION = 8000L; // 8 segundos
+    
     // Audio
     // Volumen por defecto para la música de fondo (0.0f - 1.0f)
-    public static final float BG_MUSIC_VOLUME = 0.25f;
+    public static final float BG_MUSIC_VOLUME = 0.05f;
 }

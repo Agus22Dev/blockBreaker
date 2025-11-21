@@ -12,6 +12,9 @@ public class PingBall {
 	    private int size;
 	    private int xSpeed;
 	    private int ySpeed;
+	    private int normalXSpeed; // Velocidad normal
+	    private int normalYSpeed; // Velocidad normal
+	    private long slowEndTime = 0; // Tiempo en que termina el efecto de ralentización
 	    private Color color = Color.WHITE;
 	    private boolean estaQuieto;
 	    
@@ -21,6 +24,8 @@ public class PingBall {
 	        this.size = size;
 	        this.xSpeed = xSpeed;
 	        this.ySpeed = ySpeed;
+	        this.normalXSpeed = xSpeed;
+	        this.normalYSpeed = ySpeed;
 	        estaQuieto = iniciaQuieto;
 	    }
 	    
@@ -36,13 +41,48 @@ public class PingBall {
 	    }
 	    public int getY() {return y;}
 	    
+	    /**
+	     * Activa el efecto de ralentización temporalmente.
+	     */
+	    public void activateSlow() {
+	        slowEndTime = System.currentTimeMillis() + GameConfig.SLOW_BALL_DURATION;
+	        xSpeed = normalXSpeed / 2;
+	        ySpeed = normalYSpeed / 2;
+	    }
+	    
+	    /**
+	     * Verifica si el efecto de ralentización está activo.
+	     */
+	    public boolean isSlow() {
+	        return System.currentTimeMillis() < slowEndTime;
+	    }
+	    
+	    /**
+	     * Actualiza el estado de la pelota (verifica si el efecto terminó).
+	     */
+	    private void updateEffects() {
+	        if (slowEndTime > 0 && System.currentTimeMillis() >= slowEndTime) {
+	            xSpeed = normalXSpeed * (xSpeed < 0 ? -1 : 1);
+	            ySpeed = normalYSpeed * (ySpeed < 0 ? -1 : 1);
+	            slowEndTime = 0;
+	        }
+	    }
+	    
 	    public void draw(ShapeRenderer shape){
-	        shape.setColor(color);
+	        // Color diferente cuando está ralentizada
+	        if (isSlow()) {
+	            shape.setColor(new Color(0.5f, 0.5f, 1.0f, 1.0f)); // Azul claro
+	        } else {
+	            shape.setColor(color);
+	        }
 	        shape.circle(x, y, size);
 	    }
 	    
 	    public void update() {
 	    	if (estaQuieto) return;
+	    	
+	    	updateEffects(); // Actualizar efectos temporales
+	    	
 	        x += xSpeed;
 	        y += ySpeed;
 	        if (x-size < 0 || x+size > Gdx.graphics.getWidth()) {
@@ -57,6 +97,25 @@ public class PingBall {
 	        if(collidesWith(paddle)){
 	            color = Color.GREEN;
 	            ySpeed = -ySpeed;
+	            
+	            // Ajustar dirección horizontal según dónde golpee en el paddle
+	            int ballCenter = x;
+	            int paddleCenter = paddle.getX() + paddle.getWidth() / 2;
+	            int relativeIntersectX = ballCenter - paddleCenter;
+	            
+	            // Normalizar la posición relativa (-1 a 1)
+	            float normalizedRelativeIntersection = (float)relativeIntersectX / (paddle.getWidth() / 2);
+	            
+	            // Ajustar velocidad X basada en dónde golpeó
+	            // Si golpea en el centro, mantiene la velocidad
+	            // Si golpea en los bordes, aumenta la velocidad horizontal
+	            int currentSpeedMagnitude = isSlow() ? normalXSpeed / 2 : normalXSpeed;
+	            xSpeed = (int)(normalizedRelativeIntersection * currentSpeedMagnitude * 1.5f);
+	            
+	            // Asegurar una velocidad mínima horizontal
+	            if (Math.abs(xSpeed) < 1) {
+	                xSpeed = (xSpeed >= 0) ? 1 : -1;
+	            }
 	        }
 	        else{
 	            color = Color.WHITE;
