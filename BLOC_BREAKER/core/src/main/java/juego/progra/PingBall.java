@@ -68,8 +68,11 @@ public class PingBall {
 	     */
 	    public void activateSlow() {
 	        slowEndTime = System.currentTimeMillis() + GameConfig.SLOW_BALL_DURATION;
-	        xSpeed = normalXSpeed / 2;
-	        ySpeed = normalYSpeed / 2;
+	        // Preservar la dirección actual de la velocidad
+	        int xDirection = xSpeed < 0 ? -1 : 1;
+	        int yDirection = ySpeed < 0 ? -1 : 1;
+	        xSpeed = (Math.abs(normalXSpeed) / 2) * xDirection;
+	        ySpeed = (Math.abs(normalYSpeed) / 2) * yDirection;
 	    }
 	    
 	    /**

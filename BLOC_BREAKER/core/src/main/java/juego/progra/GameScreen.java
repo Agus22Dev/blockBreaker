@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 /**
  * Pantalla del juego principal.
  * Contiene toda la lógica del juego Block Breaker.
+ * Utiliza el patrón Abstract Factory para crear diferentes tipos de niveles.
  */
 public class GameScreen extends AbstractScreen {
 	private PingBall ball;
@@ -22,6 +23,7 @@ public class GameScreen extends AbstractScreen {
 	private int puntaje;
 	private int nivel;
 	private boolean paused = false;
+	private BlockFactory blockFactory; // Abstract Factory para crear bloques
 
 	public GameScreen(BlockBreakerGame game) {
 		super(game);
@@ -34,6 +36,9 @@ public class GameScreen extends AbstractScreen {
 		vidas = 3;
 		puntaje = 0;
 		
+		// Seleccionar fábrica según el nivel (Abstract Factory Pattern)
+		selectBlockFactory();
+		
 		crearBloques(2 + nivel);
 		ball = new PingBall(Gdx.graphics.getWidth() / 2 - 10, 41, 10, GameConfig.BALL_SPEED_X, GameConfig.BALL_SPEED_Y, true);
 		pad = new Paddle(Gdx.graphics.getWidth() / 2 - 50, 40, 100, 10);
@@ -43,9 +48,24 @@ public class GameScreen extends AbstractScreen {
 	}
 	
 	/**
+	 * Selecciona la fábrica de bloques según el nivel actual.
+	 * Implementa el patrón Abstract Factory (GM2.4).
+	 */
+	private void selectBlockFactory() {
+		if (nivel <= 2) {
+			blockFactory = new EasyLevelFactory();
+		} else if (nivel <= 5) {
+			blockFactory = new NormalLevelFactory();
+		} else {
+			blockFactory = new HardLevelFactory();
+		}
+	}
+	
+	/**
 	 * Inicializa los objetos del juego con las dimensiones actuales de la pantalla.
 	 */
 	private void initializeGameObjects() {
+		selectBlockFactory(); // Actualizar fábrica según nivel
 		crearBloques(2 + nivel);
 		ball = new PingBall(Gdx.graphics.getWidth() / 2 - 10, 41, 10, GameConfig.BALL_SPEED_X, GameConfig.BALL_SPEED_Y, true);
 		pad = new Paddle(Gdx.graphics.getWidth() / 2 - 50, 40, 100, 10);
@@ -53,6 +73,7 @@ public class GameScreen extends AbstractScreen {
 	
 	/**
 	 * Genera los bloques del nivel según la resolución actual.
+	 * Usa la fábrica de bloques (Abstract Factory) para crear bloques apropiados al nivel.
 	 */
 	public void crearBloques(int filas) {
 		blocks.clear();
@@ -70,17 +91,31 @@ public class GameScreen extends AbstractScreen {
 		
 		int y = screenHeight - spacing;
 
+		// Ajustar probabilidades según el tipo de nivel
+		double regenerativeChance = 0.1;
+		double strongChance = 0.4;
+		
+		if (blockFactory instanceof HardLevelFactory) {
+			regenerativeChance = 0.25; // Más bloques regenerativos en nivel difícil
+			strongChance = 0.55;
+		} else if (blockFactory instanceof EasyLevelFactory) {
+			regenerativeChance = 0.05; // Menos bloques regenerativos en nivel fácil
+			strongChance = 0.25;
+		}
+
 		for (int cont = 0; cont < filas; cont++) {
 			y -= blockHeight + spacing;
 			for (int col = 0; col < numColumnas; col++) {
 				int x = spacing + col * (blockWidth + spacing);
 				double random = Math.random();
-				if (random < 0.1) {
-					blocks.add(new RegenerativeBlock(x, y, blockWidth, blockHeight));
-				} else if (random < 0.4) {
-					blocks.add(new StrongBlock(x, y, blockWidth, blockHeight));
+				
+				// Usar la fábrica para crear los bloques (Abstract Factory Pattern)
+				if (random < regenerativeChance) {
+					blocks.add(blockFactory.createRegenerativeBlock(x, y, blockWidth, blockHeight));
+				} else if (random < strongChance) {
+					blocks.add(blockFactory.createStrongBlock(x, y, blockWidth, blockHeight));
 				} else {
-					blocks.add(new SimpleBlock(x, y, blockWidth, blockHeight));
+					blocks.add(blockFactory.createSimpleBlock(x, y, blockWidth, blockHeight));
 				}
 			}
 		}
@@ -156,6 +191,7 @@ public class GameScreen extends AbstractScreen {
 		// Siguiente nivel
 		if (blocks.isEmpty()) {
 			nivel++;
+			selectBlockFactory(); // Cambiar fábrica según el nuevo nivel
 			crearBloques(2 + nivel);
 			ball = new PingBall(pad.getX() + pad.getWidth() / 2 - 5, pad.getY() + pad.getHeight() + 11, 10, GameConfig.BALL_SPEED_X, GameConfig.BALL_SPEED_Y, true);
 		}
@@ -200,8 +236,10 @@ public class GameScreen extends AbstractScreen {
 			}
 		}
 
-		// Colisión con el pad
-		ball.checkCollision(pad);
+		// Colisión con el pad (solo si la pelota está en movimiento)
+		if (!ball.estaQuieto()) {
+			ball.checkCollision(pad);
+		}
 	}
 	
 	private boolean checkCollision(PowerUp powerUp, Paddle paddle) {

@@ -3,24 +3,33 @@ package juego.progra;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.files.FileHandle;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
  * Gestor centralizado de música del juego.
  * Maneja la música del menú y del juego por separado.
+ * Soporta cola de reproducción para música del juego.
  */
 public class MusicManager {
     private static final Logger LOGGER = Logger.getLogger(MusicManager.class.getName());
     
     private static MusicManager instance;
     private Music menuMusic;
-    private Music gameMusic;
+    private List<Music> gameMusicPlaylist; // Cola de canciones del juego
+    private int currentTrackIndex; // Índice de la canción actual
     private Music currentMusic;
+    private boolean isPlayingGameMusic; // Para saber si estamos reproduciendo música del juego
     
     /**
      * Constructor privado - Singleton pattern.
      */
     private MusicManager() {
+        gameMusicPlaylist = new ArrayList<>();
+        currentTrackIndex = 0;
+        isPlayingGameMusic = false;
+        
         // Cargar música del menú
         try {
             FileHandle menuFile = Gdx.files.internal("music/menu.ogg");
@@ -35,18 +44,53 @@ public class MusicManager {
             menuMusic = null;
         }
         
-        // Cargar música del juego
-        try {
-            FileHandle gameFile = Gdx.files.internal("music/bg.ogg");
-            if (gameFile.exists()) {
-                gameMusic = Gdx.audio.newMusic(gameFile);
-                gameMusic.setLooping(true);
-            } else {
-                LOGGER.warning("Archivo de música del juego no encontrado: music/bg.ogg");
+        // Cargar todas las canciones del juego en una playlist
+        loadGamePlaylist();
+    }
+    
+    /**
+     * Carga todas las canciones disponibles en la carpeta music/ para el juego.
+     */
+    private void loadGamePlaylist() {
+        // Buscar archivos de música en la carpeta music/
+        // Puedes agregar más canciones aquí
+        String[] songFiles = {
+            "music/bg.ogg",
+            "music/game1.ogg",
+            "music/game2.ogg",
+            "music/game3.ogg"
+            // Agrega más canciones aquí si las tienes
+        };
+        
+        for (String songPath : songFiles) {
+            try {
+                FileHandle gameFile = Gdx.files.internal(songPath);
+                if (gameFile.exists()) {
+                    Music music = Gdx.audio.newMusic(gameFile);
+                    music.setLooping(false); // No repetir individualmente
+                    
+                    // Listener para pasar a la siguiente canción cuando termine
+                    music.setOnCompletionListener(new Music.OnCompletionListener() {
+                        @Override
+                        public void onCompletion(Music music) {
+                            playNextTrack();
+                        }
+                    });
+                    
+                    gameMusicPlaylist.add(music);
+                    LOGGER.info("Canción cargada: " + songPath);
+                } else {
+                    LOGGER.info("Archivo de música no encontrado (se omite): " + songPath);
+                }
+            } catch (Exception e) {
+                LOGGER.warning("Error cargando música del juego (" + songPath + "): " + e.getMessage());
             }
-        } catch (Exception e) {
-            LOGGER.warning("Error cargando música del juego: " + e.getMessage());
-            gameMusic = null;
+        }
+        
+        if (gameMusicPlaylist.isEmpty()) {
+            LOGGER.warning("No se cargaron canciones para el juego");
+        } else {
+            LOGGER.info("Playlist del juego cargada con " + gameMusicPlaylist.size() + " canciones");
         }
     }
     
@@ -74,28 +118,67 @@ public class MusicManager {
     }
     
     /**
-     * Reproduce la música del juego.
+     * Reproduce la música del juego (inicia con la primera canción de la playlist).
      */
     public void playGameMusic() {
         stopAll();
-        if (gameMusic != null) {
-            currentMusic = gameMusic;
-            gameMusic.setVolume(GameSettings.getInstance().getMusicVolume());
-            gameMusic.play();
-            LOGGER.info("Reproduciendo música del juego");
+        isPlayingGameMusic = true;
+        
+        if (!gameMusicPlaylist.isEmpty()) {
+            currentTrackIndex = 0;
+            playCurrentTrack();
+        } else {
+            LOGGER.warning("No hay canciones en la playlist del juego");
         }
+    }
+    
+    /**
+     * Reproduce la canción actual de la playlist.
+     */
+    private void playCurrentTrack() {
+        if (!gameMusicPlaylist.isEmpty() && currentTrackIndex < gameMusicPlaylist.size()) {
+            currentMusic = gameMusicPlaylist.get(currentTrackIndex);
+            currentMusic.setVolume(GameSettings.getInstance().getMusicVolume());
+            currentMusic.play();
+            LOGGER.info("Reproduciendo canción " + (currentTrackIndex + 1) + "/" + gameMusicPlaylist.size());
+        }
+    }
+    
+    /**
+     * Pasa a la siguiente canción en la playlist.
+     */
+    private void playNextTrack() {
+        if (!isPlayingGameMusic || gameMusicPlaylist.isEmpty()) {
+            return;
+        }
+        
+        currentTrackIndex++;
+        
+        // Si llegamos al final, volver al inicio (loop de la playlist)
+        if (currentTrackIndex >= gameMusicPlaylist.size()) {
+            currentTrackIndex = 0;
+        }
+        
+        playCurrentTrack();
     }
     
     /**
      * Detiene toda la música.
      */
     public void stopAll() {
+        isPlayingGameMusic = false;
+        
         if (menuMusic != null && menuMusic.isPlaying()) {
             menuMusic.stop();
         }
-        if (gameMusic != null && gameMusic.isPlaying()) {
-            gameMusic.stop();
+        
+        // Detener todas las canciones de la playlist
+        for (Music music : gameMusicPlaylist) {
+            if (music.isPlaying()) {
+                music.stop();
+            }
         }
+        
         currentMusic = null;
     }
     
@@ -122,11 +205,14 @@ public class MusicManager {
      */
     public void updateVolume() {
         float volume = GameSettings.getInstance().getMusicVolume();
+        
         if (menuMusic != null) {
             menuMusic.setVolume(volume);
         }
-        if (gameMusic != null) {
-            gameMusic.setVolume(volume);
+        
+        // Actualizar volumen de todas las canciones de la playlist
+        for (Music music : gameMusicPlaylist) {
+            music.setVolume(volume);
         }
     }
     
@@ -138,10 +224,13 @@ public class MusicManager {
             menuMusic.dispose();
             menuMusic = null;
         }
-        if (gameMusic != null) {
-            gameMusic.dispose();
-            gameMusic = null;
+        
+        // Liberar todas las canciones de la playlist
+        for (Music music : gameMusicPlaylist) {
+            music.dispose();
         }
+        gameMusicPlaylist.clear();
+        
         currentMusic = null;
         instance = null;
     }

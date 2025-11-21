@@ -3,4 +3,7 @@ logo.png
 music/.gitkeep
 music/INSTRUCCIONES_MUSICA.md
 music/bg.ogg
+music/game1.ogg
+music/game2.ogg
+music/game3.ogg
 music/menu.ogg
