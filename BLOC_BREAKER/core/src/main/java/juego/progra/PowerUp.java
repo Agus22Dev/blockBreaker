@@ -5,12 +5,12 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 /**
  * Clase abstracta base para todos los power-ups del juego.
- * Los power-ups son objetos destructibles que caen desde los bloques destruidos
+ * Los power-ups son objetos que caen desde los bloques destruidos
  * y otorgan beneficios al jugador cuando son recogidos por el paddle.
  * 
- * Implementa Destructible para poder ser manejados de forma polimórfica.
+ * NOTA: NO implementa Destructible porque no queremos que la pelota los destruya.
  */
-public abstract class PowerUp implements Destructible {
+public abstract class PowerUp {
     
     protected int x, y;
     protected int width, height;
@@ -57,7 +57,6 @@ public abstract class PowerUp implements Destructible {
         }
     }
     
-    @Override
     public void draw(ShapeRenderer shape) {
         if (!destroyed) {
             // Dibujar el fondo del power-up
@@ -78,7 +77,6 @@ public abstract class PowerUp implements Destructible {
         }
     }
     
-    @Override
     public boolean takeDamage() {
         // Los power-ups se destruyen inmediatamente al ser "recogidos"
         if (!destroyed) {
@@ -88,32 +86,26 @@ public abstract class PowerUp implements Destructible {
         return false;
     }
     
-    @Override
     public boolean isDestroyed() {
         return destroyed;
     }
     
-    @Override
     public int getX() {
         return x;
     }
     
-    @Override
     public int getY() {
         return y;
     }
     
-    @Override
     public int getWidth() {
         return width;
     }
     
-    @Override
     public int getHeight() {
         return height;
     }
     
-    @Override
     public int getPointValue() {
         return pointValue;
     }
@@ -126,9 +118,9 @@ public abstract class PowerUp implements Destructible {
      * Método abstracto que define el efecto del power-up.
      * Cada tipo de power-up debe implementar su efecto específico.
      * 
-     * @param game referencia al juego para aplicar el efecto
+     * @param gameScreen referencia a la pantalla del juego para aplicar el efecto
      */
-    public abstract void applyEffect(BlockBreakerGame game);
+    public abstract void applyEffect(GameScreen gameScreen);
     
     /**
      * Retorna una descripción del power-up.

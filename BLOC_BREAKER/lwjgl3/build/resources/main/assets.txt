@@ -1,3 +1,6 @@
 libgdx.png
+logo.png
 music/.gitkeep
+music/INSTRUCCIONES_MUSICA.md
 music/bg.ogg
+music/menu.ogg

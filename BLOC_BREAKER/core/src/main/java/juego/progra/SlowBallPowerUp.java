@@ -15,8 +15,8 @@ public class SlowBallPowerUp extends PowerUp {
         super(
             x, 
             y, 
-            GameConfig.POWERUP_WIDTH, 
-            GameConfig.POWERUP_HEIGHT,
+            GameConfig.getPowerUpWidth(), 
+            GameConfig.getPowerUpHeight(),
             new Color(0.3f, 0.6f, 1.0f, 1.0f), // Azul claro
             GameConfig.SLOW_BALL_POWERUP_POINTS,
             "S"
@@ -24,8 +24,8 @@ public class SlowBallPowerUp extends PowerUp {
     }
     
     @Override
-    public void applyEffect(BlockBreakerGame game) {
-        game.slowDownBall();
+    public void applyEffect(GameScreen gameScreen) {
+        gameScreen.slowDownBall();
         LOGGER.info("🐌 ¡Pelota ralentizada! (+" + getPointValue() + " puntos)");
     }
     

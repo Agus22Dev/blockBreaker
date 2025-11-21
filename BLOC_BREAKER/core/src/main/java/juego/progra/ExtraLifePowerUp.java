@@ -15,8 +15,8 @@ public class ExtraLifePowerUp extends PowerUp {
         super(
             x, 
             y, 
-            GameConfig.POWERUP_WIDTH, 
-            GameConfig.POWERUP_HEIGHT,
+            GameConfig.getPowerUpWidth(), 
+            GameConfig.getPowerUpHeight(),
             new Color(0.2f, 0.8f, 0.2f, 1.0f), // Verde
             GameConfig.EXTRA_LIFE_POWERUP_POINTS,
             "+"
@@ -24,8 +24,8 @@ public class ExtraLifePowerUp extends PowerUp {
     }
     
     @Override
-    public void applyEffect(BlockBreakerGame game) {
-        game.addLife();
+    public void applyEffect(GameScreen gameScreen) {
+        gameScreen.addLife();
         LOGGER.info("💚 ¡Vida extra obtenida! (+" + getPointValue() + " puntos)");
     }
     

@@ -22,11 +22,26 @@ public final class GameConfig {
     public static final int BALL_SPEED_X = 4;
     public static final int BALL_SPEED_Y = 5;
     
-    // Power-ups
-    public static final int POWERUP_WIDTH = 30;
-    public static final int POWERUP_HEIGHT = 20;
+    // Power-ups (se calcularán dinámicamente según resolución)
+    // Estos son valores base para 800x480
+    public static final int POWERUP_WIDTH_BASE = 30;
+    public static final int POWERUP_HEIGHT_BASE = 20;
     public static final int POWERUP_FALL_SPEED = 2;
-    public static final double POWERUP_DROP_CHANCE = 0.15; // 15% de probabilidad
+    public static final double POWERUP_DROP_CHANCE = 0.3; // 30% de probabilidad (aumentado para más diversión)
+    
+    /**
+     * Calcula el ancho del power-up según la resolución actual.
+     */
+    public static int getPowerUpWidth() {
+        return com.badlogic.gdx.Gdx.graphics.getWidth() * POWERUP_WIDTH_BASE / 800;
+    }
+    
+    /**
+     * Calcula la altura del power-up según la resolución actual.
+     */
+    public static int getPowerUpHeight() {
+        return com.badlogic.gdx.Gdx.graphics.getHeight() * POWERUP_HEIGHT_BASE / 480;
+    }
     
     // Puntos de power-ups
     public static final int EXTRA_LIFE_POWERUP_POINTS = 20;

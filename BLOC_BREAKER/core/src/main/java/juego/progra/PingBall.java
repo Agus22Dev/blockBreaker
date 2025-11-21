@@ -15,8 +15,8 @@ public class PingBall {
 	    private int normalXSpeed; // Velocidad normal
 	    private int normalYSpeed; // Velocidad normal
 	    private long slowEndTime = 0; // Tiempo en que termina el efecto de ralentización
-	    private Color color = Color.WHITE;
 	    private boolean estaQuieto;
+	    private BallAppearance appearance; // Patrón Strategy - apariencia de la pelota
 	    
 	    public PingBall(int x, int y, int size, int xSpeed, int ySpeed, boolean iniciaQuieto) {
 	        this.x = x;
@@ -27,6 +27,28 @@ public class PingBall {
 	        this.normalXSpeed = xSpeed;
 	        this.normalYSpeed = ySpeed;
 	        estaQuieto = iniciaQuieto;
+	        updateAppearance(); // Inicializar apariencia según configuración
+	    }
+	    
+	    /**
+	     * Actualiza la apariencia de la pelota según la configuración (Strategy Pattern).
+	     */
+	    public void updateAppearance() {
+	        int appearanceIndex = GameSettings.getInstance().getBallAppearanceIndex();
+	        switch (appearanceIndex) {
+	            case 0:
+	                appearance = new WhiteBallAppearance();
+	                break;
+	            case 1:
+	                appearance = new HappyFaceBallAppearance();
+	                break;
+	            case 2:
+	                appearance = new SoccerBallAppearance();
+	                break;
+	            default:
+	                appearance = new WhiteBallAppearance();
+	                break;
+	        }
 	    }
 	    
 	    public boolean estaQuieto() {
@@ -68,17 +90,18 @@ public class PingBall {
 	        }
 	    }
 	    
-	    public void draw(ShapeRenderer shape){
-	        // Color diferente cuando está ralentizada
-	        if (isSlow()) {
-	            shape.setColor(new Color(0.5f, 0.5f, 1.0f, 1.0f)); // Azul claro
-	        } else {
-	            shape.setColor(color);
-	        }
-	        shape.circle(x, y, size);
-	    }
-	    
-	    public void update() {
+    public void draw(ShapeRenderer shape){
+        // Usar el patrón Strategy para dibujar la apariencia actual
+        if (appearance != null) {
+            appearance.draw(shape, x, y, size);
+        }
+        
+        // Overlay azul cuando está ralentizada
+        if (isSlow()) {
+            shape.setColor(new Color(0.3f, 0.3f, 1.0f, 0.3f)); // Azul semi-transparente
+            shape.circle(x, y, size + 2);
+        }
+    }	    public void update() {
 	    	if (estaQuieto) return;
 	    	
 	    	updateEffects(); // Actualizar efectos temporales
@@ -95,7 +118,6 @@ public class PingBall {
 	    
 	    public void checkCollision(Paddle paddle) {
 	        if(collidesWith(paddle)){
-	            color = Color.GREEN;
 	            ySpeed = -ySpeed;
 	            
 	            // Ajustar dirección horizontal según dónde golpee en el paddle
@@ -116,9 +138,6 @@ public class PingBall {
 	            if (Math.abs(xSpeed) < 1) {
 	                xSpeed = (xSpeed >= 0) ? 1 : -1;
 	            }
-	        }
-	        else{
-	            color = Color.WHITE;
 	        }
 	    }
 	    private boolean collidesWith(Paddle pp) {

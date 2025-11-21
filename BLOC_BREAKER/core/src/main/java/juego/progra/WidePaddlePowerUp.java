@@ -15,8 +15,8 @@ public class WidePaddlePowerUp extends PowerUp {
         super(
             x, 
             y, 
-            GameConfig.POWERUP_WIDTH, 
-            GameConfig.POWERUP_HEIGHT,
+            GameConfig.getPowerUpWidth(), 
+            GameConfig.getPowerUpHeight(),
             new Color(1.0f, 0.6f, 0.2f, 1.0f), // Naranja
             GameConfig.WIDE_PADDLE_POWERUP_POINTS,
             "W"
@@ -24,8 +24,8 @@ public class WidePaddlePowerUp extends PowerUp {
     }
     
     @Override
-    public void applyEffect(BlockBreakerGame game) {
-        game.widenPaddle();
+    public void applyEffect(GameScreen gameScreen) {
+        gameScreen.widenPaddle();
         LOGGER.info("📏 ¡Paddle agrandado! (+" + getPointValue() + " puntos)");
     }
     
