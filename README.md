@@ -1,31 +1,67 @@
-# JUEGO
+# Análisis del juego (perspectiva del Ingeniero de Software)
 
-**Agustin sandoval tirano de epoca** ✊
+Este documento analiza la arquitectura actual del proyecto y las modificaciones propuestas.
 
-## JUEGO BASE: Block Breaker
+Código base
+- El proyecto usa LibGDX para rendering y manejo de entrada.
+- Estructura principal:
+  - Módulo `core`: contiene la lógica del juego (`BlockBreakerGame`, bloques, pad, pelota).
+  - Módulo `lwjgl3`: backend de escritorio y launcher.
 
-## TAREAS QUE HACER:
+Clases relevantes
+- `AbstractBlock` (clase abstracta base) — provee posición, tamaño, color, estado y API `takeDamage()`.
+- `SimpleBlock`, `StrongBlock`, `RegenerativeBlock` — implementaciones concretas.
+- `Destructible` (interfaz) — define la API usada por objetos que pueden ser dañados.
 
-* **GM1.1** Realizar una explicación del juego a realizar desde la perspectiva del jugador. Tutorial detallado de qué trata el juego (ej. objetivos y narrativa), elementos, y controles de movimiento/acción utilizando para ello maquetas o pantallazos de las interfaces gráficas.
+Modificaciones propuestas (ejemplos)
+- Añadir sistema de niveles con configuración desde archivo JSON.
+- Añadir menú principal y sistema de pausa.
+- Externalizar constantes (tamaños, puntajes) en una clase `Config`.
 
-* **GM1.2** Análisis del juego a realizar (perspectiva del Ing. de software), especificando el juego a usar de base y las modificaciones que se le pretende realizar en términos de funcionalidad y estructura.
+Decisiones de diseño
+- Uso de una clase abstracta (`AbstractBlock`) para compartir comportamiento entre bloques (cumple GM1.4).
+- `Destructible` como interfaz permite expresar el contrato de objetos que pueden recibir daño (cumple GM1.5).
+- Se priorizaron cambios no intrusivos para mantener compilación y facilidad de prueba.
 
-### Game battle
+Riesgos y limitaciones
+- Mezcla de `System.out.println` para logging — recomendable usar un logger en su lugar.
+- Manejo de assets y resolución fija: actualmente el tamaño de cámara y valores están hardcodeados.
 
-* **GM1.3** Diseño de diagrama UML con clases del Dominio del juego (clases base LibGDX + propias) y su código en Java
+# Tutorial del juego — Block Breaker (perspectiva del jugador)
 
-* **GM1.4** Diseño y codificación de 1 (una) clase abstracta que sea padre de al menos 2 (dos) clases. La clase abstracta debe ser utilizada por alguna otra clase (contexto)
+Bienvenido a Block Breaker. Este documento explica el objetivo, controles y las pantallas principales desde la perspectiva del jugador.
 
-* **GM1.5** Diseño y codificación de 1 (una) interfaz que sea implementada por al menos 2 (dos) clases. La interfaz debe ser utilizada por alguna otra clase (contexto)
+Objetivo
+- Destruir todos los bloques en pantalla usando la pelota y el pad.
+- Cada bloque otorga puntos al ser destruido; algunos bloques requieren múltiples golpes o se regeneran.
 
-* **GM1.6** Se debe aplicar encapsulamiento y principios POO
+Controles
+- Izquierda / Derecha: mover el pad (flechas izquierda/derecha del teclado).
+- Barra espaciadora (SPACE): lanzar la pelota cuando esté quieta.
 
-* **GM1.7** Utilización de GitHub (Realización de al menos 3 Commit) obviooo
+Elementos del juego
+- Pad: controlado por el jugador para devolver la pelota.
+- Pelota: rebota en paredes, pad y bloques; colisionar con bloques les aplica daño.
+- Bloques:
+  - Bloque simple: se destruye con 1 golpe (10 puntos).
+  - StrongBlock: requiere varios golpes (30 puntos al destruirlo). Muestra mensajes en consola.
+  - RegenerativeBlock: puede regenerarse si no recibe golpes consecutivos rápidamente; otorga más puntos.
 
----
+Interfaz y pantallas (maquetas)
+- Pantalla principal (in-game): muestra el área de juego con el pad abajo, bloques en la parte superior, y HUD con Puntos, Vidas y Nivel.
+- No hay menús complejos implementados; la UI principal se encuentra en la clase `BlockBreakerGame.dibujaTextos()` que dibuja el HUD.
 
-### Comentarios/Notas:
-- GM1.1: TEORIA
-- GM1.2: tEORIA  
-- GM1.3: cODIGO
-- GM1.6: rEVISION
+Consejos de juego
+- Mantén la pelota en juego moviendo el pad y lanzando la pelota con SPACE.
+- Prioriza bloques regenerativos y fuertes para maximizar puntos.
+
+Cómo ejecutar
+1. Abrir una terminal en la carpeta `BLOC_BREAKER`.
+2. Ejecutar:
+
+```
+./gradlew.bat --project-dir . :lwjgl3:run
+```
+
+Notas
+- Mensajes de estado (puntos, golpes) se imprimen por consola con `System.out.println` en las clases de bloque.
